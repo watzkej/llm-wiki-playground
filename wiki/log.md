@@ -54,3 +54,9 @@
 - Updated:
   - concepts/wiki-compilation-pattern.md — Added "Standardization: Open Knowledge Format" section
 - Updated: index.md (15 entries), log.md (this entry)
+
+## [2026-06-19] query | "What trade-offs do you face when building a production wiki compilation pipeline?"
+- Pages consulted: wiki-compilation-pattern, wiki-llm, markdown-pipeline-integrity, rag-vs-compilation, open-knowledge-format
+- Synthesis: 4 trade-off dimensions surfaced (programmatic vs. agentic, markdown integrity, ingest/query cost inversion, standardization vs. flexibility)
+- Filed: not filed (demonstration query)
+- Updated: log.md (this entry)
