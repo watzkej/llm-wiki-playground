@@ -1,0 +1,6 @@
+# RSS watcher state (prevents re-downloading, should not be committed)
+wiki/.rss-state.json
+
+# Temporary files
+*.tmp
+tmp/

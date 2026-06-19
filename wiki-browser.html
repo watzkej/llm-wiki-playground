@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Wiki — Agent Architectures</title>
+<style>
+:root {
+    --bg: #1e1e2e;
+    --bg2: #282840;
+    --bg3: #313150;
+    --text: #cdd6f4;
+    --text2: #a6adc8;
+    --text3: #6c7086;
+    --accent: #89b4fa;
+    --accent2: #cba6f7;
+    --green: #a6e3a1;
+    --yellow: #f9e2af;
+    --red: #f38ba8;
+    --border: #45475a;
+    --link: #89b4fa;
+    --link-hover: #b4d0fb;
+    --tag-bg: #313150;
+    --provenance: #6c7086;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { color: var(--link-hover); text-decoration: underline; }
+
+/* === SIDEBAR === */
+.sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px;
+}
+.sidebar h1 {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+    color: var(--accent2);
+}
+.sidebar .subtitle {
+    font-size: 0.75em;
+    color: var(--text3);
+    margin-bottom: 20px;
+}
+.sidebar h2 {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin: 16px 0 6px 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+.sidebar h2:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+.sidebar-item {
+    display: block;
+    padding: 4px 8px;
+    margin: 1px 0;
+    border-radius: 4px;
+    font-size: 0.85em;
+    cursor: pointer;
+    color: var(--text);
+}
+.sidebar-item:hover {
+    background: var(--bg3);
+    color: var(--link-hover);
+    text-decoration: none;
+}
+.sidebar-item .type-badge {
+    display: inline-block;
+    font-size: 0.65em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+.type-entity { background: #45475a; color: #89b4fa; }
+.type-concept { background: #313150; color: #a6e3a1; }
+.type-comparison { background: #45475a; color: #f9e2af; }
+.type-query { background: #313150; color: #cba6f7; }
+
+.sidebar-stats {
+    font-size: 0.7em;
+    color: var(--text3);
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+/* === MAIN CONTENT === */
+.main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 60px;
+}
+.main h1 { font-size: 2em; color: var(--accent2); margin-bottom: 8px; }
+.main h2 { font-size: 1.4em; color: var(--accent); margin: 32px 0 12px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.main h3 { font-size: 1.1em; color: var(--text); margin: 24px 0 8px 0; }
+.main h4 { font-size: 1em; color: var(--text2); margin: 16px 0 6px 0; }
+.main p { line-height: 1.7; margin: 8px 0; }
+.main ul, .main ol { margin: 8px 0 8px 20px; }
+.main li { line-height: 1.6; margin: 2px 0; }
+.main table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 0.9em;
+}
+.main th, .main td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+}
+.main th { background: var(--bg3); color: var(--accent); font-weight: 600; }
+.main blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 16px;
+    margin: 12px 0;
+    color: var(--text2);
+    background: var(--bg2);
+    border-radius: 0 4px 4px 0;
+}
+.main code {
+    background: var(--bg3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+.main pre {
+    background: var(--bg3);
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+.main pre code { background: none; padding: 0; }
+.main hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.main sup.provenance {
+    font-size: 0.7em;
+    color: var(--provenance);
+    cursor: help;
+}
+.main sup.provenance:hover { color: var(--text2); }
+
+/* === PAGE META === */
+.page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 8px 0 20px 0;
+    font-size: 0.8em;
+    color: var(--text3);
+}
+.page-meta .tag {
+    background: var(--tag-bg);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+.page-meta .confidence-high { color: var(--green); }
+.page-meta .confidence-medium { color: var(--yellow); }
+.page-meta .confidence-low { color: var(--red); }
+
+/* === WELCOME PAGE === */
+.welcome {
+    max-width: 700px;
+}
+.welcome h1 { font-size: 2.5em; margin-bottom: 12px; }
+.welcome p { font-size: 1.05em; line-height: 1.7; }
+.welcome .quick-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+}
+.welcome .quick-link {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.welcome .quick-link:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+}
+.welcome .quick-link strong { color: var(--accent); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 40vh; }
+    .main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h1>🧠 LLM Wiki</h1>
+    <div class="subtitle">Agent Architectures — 15 pages</div>
+
+    <h2>Entities</h2>
+    <div id="nav-entities"></div>
+
+    <h2>Concepts</h2>
+    <div id="nav-concepts"></div>
+
+    <h2>Comparisons</h2>
+    <div id="nav-comparisons"></div>
+
+    <h2>Queries</h2>
+    <div id="nav-queries"></div>
+
+    <div class="sidebar-stats">
+        <a href="#" onclick="showPage('_home')">← Wiki Home</a><br>
+        4 sources · 15 pages · cron every 12h
+    </div>
+</nav>
+
+<main class="main" id="content"></main>
+
+<script>
+const PAGES = {"agent-system-overview": {"title": "Agent System Overview", "type": "concept", "tags": ["pattern", "planning", "memory", "tool-use"], "html": "<h1>Agent System Overview</h1>\n<p>The standard architectural model for LLM-powered autonomous agents centers on three components:</p>\n<h2>The Three-Component Model</h2>\n<p>1. <strong>Planning</strong> \u2014 The agent decomposes complex tasks into manageable subgoals and can reflect on past actions to refine future steps. See <a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a>.</p>\n<p>2. <strong>Memory</strong> \u2014 The agent maintains both short-term memory (in-context learning) and long-term memory (external vector stores with fast retrieval). See <a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a>.</p>\n<p>3. <strong>Tool Use</strong> \u2014 The agent calls external APIs and tools to access information beyond its model weights, execute code, and interact with environments. See <a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a>.</p>\n<p>The LLM functions as the \"brain\" or central controller, orchestrating all three components.</p>\n<h2>Key Insight</h2>\n<p>This decomposition has become the de facto reference architecture for agent frameworks. Most modern agent systems (<a href=\"#\" class=\"wikilink\" data-page=\"auto-gpt\">auto-gpt</a>, HuggingGPT, Generative Agents) map to this model, though they emphasize different components.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a> \u2014 Deep dive on decomposition and self-reflection</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a> \u2014 Memory types and retrieval strategies</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a> \u2014 External API integration patterns</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"react-pattern\">react-pattern</a> \u2014 A specific instantiation combining reasoning and acting</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "markdown-pipeline-integrity": {"title": "Markdown Pipeline Integrity", "type": "concept", "tags": ["pattern", "deployment", "emerging"], "html": "<h1>Markdown Pipeline Integrity</h1>\n<p>When LLM agents produce Markdown as intermediate output in a pipeline, structural noise \u2014 malformed headings, broken links, invalid frontmatter \u2014 propagates and corrupts every downstream stage. This is a neglected failure mode in agent architectures that generate and consume structured text.</p>\n<h2>The Problem</h2>\n<p>LLM-generated Markdown is <strong>plausible but not reliable</strong>:</p>\n<table>\n<tr><td>Failure</td><td>Impact on Pipeline</td></tr>\n<tr><td>---</td><td>---</td></tr>\n<tr><td>Drifting heading hierarchy (two H1s, skipped levels)</td><td>Chunker misroutes overlap across sections</td></tr>\n<tr><td>Broken wikilinks (point to non-existent pages)</td><td>Navigation and cross-reference chains break</td></tr>\n<tr><td>Invalid YAML frontmatter (unquoted colons)</td><td>Dataview queries, indexers, parsers fail</td></tr>\n<tr><td>Inconsistent section ordering between regenerations</td><td>Deduplicator merges wrong pages</td></tr>\n<tr><td>Syntactically valid but semantically wrong structure</td><td>Lint pass reports unfixable problems</td></tr>\n</table>\n<p>In a compounding system like <a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">Karpathy's wiki</a>, every page becomes input to topics, groups, the index, and the chat retriever. Structural noise is <strong>not cosmetic</strong> \u2014 it's correctness-critical.</p>\n<h2>The Solution: Structured Markdown Processing</h2>\n<p>Bernardo's <code>markdown-hero</code> library (Python, 2026) addresses this with:</p>\n<ul><li><strong>Type-checked Markdown</strong> \u2014 headings, links, frontmatter validated against a schema</li>\n<li><strong>Section-aware chunking</strong> \u2014 overlap windows stay within heading boundaries</li>\n<li><strong>Deduplication with heading awareness</strong> \u2014 <code>markdown_merge(dedupe_headings=True)</code> prevents structural collisions</li>\n<li><strong>Multilingual support</strong> \u2014 same guarantees across languages</li>\n<li><strong>Pipeline integration</strong> \u2014 every page passes through <code>lint()</code> before leaving the Generate stage</li>\n</ul>\n<h2>Agentic vs. Programmatic Approaches</h2>\n<p>The <a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">programmatic version</a> can enforce these guarantees because markdown-hero runs as compiled code between pipeline stages. The <a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">agentic version</a> asks the agent to follow conventions and trusts the output \u2014 which works for most use cases but fails when the wiki feeds downstream automation.</p>\n<blockquote><p>\"This is one of the few places where the programmatic version is not a heavier alternative \u2014 it's a different _capability_.\" \u2014 Bernardo</p></blockquote>\n<h2>Relevance to Agent Architecture</h2>\n<p>This pattern generalizes beyond markdown: any agent pipeline where structured output feeds another stage needs <strong>output validation</strong> between stages. This is the same principle as <a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">function calling</a> requiring structured JSON \u2014 but applied to the agent's own internal outputs rather than external API calls.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">wiki-llm</a> \u2014 The dual implementation that motivated markdown-hero</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 Why compounding makes structural noise critical</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a> \u2014 Structured output as a general agent capability</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"reflection-in-agents\">reflection-in-agents</a> \u2014 Self-critique could detect structural issues, but programmatic validation is more reliable</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/bernardo-llm-wiki-twice-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/bernardo-llm-wiki-twice-2026.md"]}, "memory-in-agents": {"title": "Memory in Agents", "type": "concept", "tags": ["memory", "framework"], "html": "<h1>Memory in Agents</h1>\n<p>Memory in LLM agents draws inspiration from human cognitive architecture and provides the agent with persistent context beyond the transformer's finite attention window.</p>\n<h2>Memory Types</h2>\n<table>\n<tr><td>Human Memory</td><td>Agent Mapping</td><td>Characteristics</td></tr>\n<tr><td>---</td><td>---</td><td>---</td></tr>\n<tr><td><strong>Sensory Memory</strong></td><td>Embedding representations</td><td>Raw input encoding (text, image, audio); lasts seconds</td></tr>\n<tr><td><strong>Short-Term Memory (STM)</strong></td><td>In-context learning</td><td>~7 items; limited by context window length of Transformer</td></tr>\n<tr><td><strong>Long-Term Memory (LTM)</strong></td><td>External vector store</td><td>Unlimited capacity; explicit (facts/events) and implicit (skills)</td></tr>\n</table>\n<h2>Long-Term Memory: Vector Stores & MIPS</h2>\n<p>The standard implementation uses embedding vectors stored in a database supporting fast <strong>Maximum Inner Product Search (MIPS)</strong>. Approximate Nearest Neighbor (ANN) algorithms trade a small accuracy loss for large speedups:</p>\n<table>\n<tr><td>Algorithm</td><td>Approach</td></tr>\n<tr><td>---</td><td>---</td></tr>\n<tr><td><strong>LSH</strong></td><td>Hash similar items to same buckets</td></tr>\n<tr><td><strong>ANNOY</strong></td><td>Random projection trees; binary search through half-spaces</td></tr>\n<tr><td><strong>HNSW</strong></td><td>Hierarchical small-world graphs with shortcut layers</td></tr>\n<tr><td><strong>FAISS</strong></td><td>Vector quantization; cluster partitioning then refinement</td></tr>\n<tr><td><strong>ScaNN</strong></td><td>Anisotropic vector quantization optimized for inner product</td></tr>\n</table>\n<h2>Retrieval Quality Dimensions</h2>\n<p>In the <a href=\"#\" class=\"wikilink\" data-page=\"generative-agents\">generative-agents</a> framework (Park et al. 2023), the retrieval model scores memories along three axes:\n<ul><li><strong>Recency</strong> \u2014 recent events score higher</li>\n<li><strong>Importance</strong> \u2014 distinguish mundane from core memories (ask the LLM directly)</li>\n<li><strong>Relevance</strong> \u2014 embedding similarity to the current situation/query</li>\n</ul>\n<h2>Structured Long-Term Memory: Wiki Compilation</h2></p>\n<p>Beyond vector stores, the <a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> (Karpathy, 2026) offers a <strong>structured alternative</strong>: instead of retrieving raw chunks, the agent maintains a persistent, interlinked knowledge base of markdown files. This is a higher-order memory system where:\n<ul><li>Knowledge is compiled once, not re-derived per query</li>\n<li>Cross-references are built into every page</li>\n<li>Contradictions are explicitly flagged and tracked</li>\n<li>The knowledge base compounds with every source</li>\n</ul>\nSee <a href=\"#\" class=\"wikilink\" data-page=\"rag-vs-compilation\">rag-vs-compilation</a> for a detailed comparison.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Memory's role in the 3-component model</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"generative-agents\">generative-agents</a> \u2014 Memory stream architecture in practice</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a> \u2014 Complementary external capability</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 Structured long-term memory via compiled wiki</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>\n<sup class=\"provenance\">[raw/articles/karpathy-llm-wiki-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "open-knowledge-format": {"title": "Open Knowledge Format (OKF)", "type": "concept", "tags": ["framework", "pattern", "deployment", "survey"], "html": "<h1>Open Knowledge Format (OKF)</h1>\n<p><strong>OKF v0.1</strong> (Google Cloud, June 2026) is an open specification that formalizes the <a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">LLM-wiki pattern</a> into a portable, interoperable standard. It's a vendor-neutral, agent- and human-friendly format for representing the metadata, context, and curated knowledge that modern AI systems need.</p>\n<h2>What It Is</h2>\n<blockquote><p>\"A format, not another service.\"</p></blockquote>\n<p>OKF represents knowledge as a directory of markdown files with YAML frontmatter \u2014 no compression schemes, no new runtime, no required SDK. A bundle is:</p>\n<ul><li><strong>Just markdown</strong> \u2014 readable in any editor, renderable on GitHub</li>\n<li><strong>Just files</strong> \u2014 shippable as a tarball, hostable in any git repo</li>\n<li><strong>Just YAML frontmatter</strong> \u2014 standardized fields: <code>type</code>, <code>title</code>, <code>description</code>, <code>resource</code>, <code>tags</code>, <code>timestamp</code></li>\n</ul>\n<h2>Why It Exists</h2>\n<p>Organizational knowledge is fragmented across incompatible systems: metadata catalogs, wikis, shared drives, code comments, notebooks. When an AI agent needs context (\"How do I compute weekly active users?\"), it has to assemble the answer from these scattered surfaces. Every vendor has its own API, schema, and SDK.</p>\n<p><strong>The wiki compilation pattern solves this for individual teams, but each instance is bespoke.</strong> OKF makes these instances interoperable by standardizing the small set of conventions \u2014 file naming, frontmatter fields, cross-linking rules \u2014 so a wiki built by one agent can be consumed by another without translation.</p>\n<h2>Three Design Principles</h2>\n<table>\n<tr><td>Principle</td><td>Meaning</td></tr>\n<tr><td>---</td><td>---</td></tr>\n<tr><td><strong>Minimally opinionated</strong></td><td>Only <code>type</code> is required. Content model is producer-defined. The spec defines the interoperability surface, not the content.</td></tr>\n<tr><td><strong>Producer/consumer independence</strong></td><td>Human-written \u2192 agent-consumed. Pipeline-generated \u2192 visualizer-browsed. LLM-synthesized \u2192 LLM-queried. The format is the contract.</td></tr>\n<tr><td><strong>Format, not platform</strong></td><td>No cloud, database, model provider, or agent framework lock-in. No proprietary SDK. \"The value of a knowledge format comes from how many parties speak it, not from who owns it.\"</td></tr>\n</table>\n<h2>Structure</h2>\n<pre><code>\nbundle/\n\u251c\u2500\u2500 index.md              # Progressive disclosure for agents\n\u251c\u2500\u2500 log.md                # Chronological change history\n\u251c\u2500\u2500 datasets/\n\u2502   \u251c\u2500\u2500 index.md\n\u2502   \u2514\u2500\u2500 orders_db.md      # One concept per file\n\u251c\u2500\u2500 tables/\n\u2502   \u251c\u2500\u2500 index.md\n\u2502   \u251c\u2500\u2500 orders.md\n\u2502   \u2514\u2500\u2500 customers.md\n\u2514\u2500\u2500 metrics/\n    \u251c\u2500\u2500 index.md\n    \u2514\u2500\u2500 weekly_active_users.md\n</code></pre>\n<p>Concepts link via normal markdown links \u2192 richer graph than filesystem hierarchy alone.</p>\n<h2>Reference Implementations</h2>\n<p>Google Cloud shipped three proofs of concept with the spec:</p>\n<p>1. <strong>Enrichment agent</strong> \u2014 walks a BigQuery dataset, drafts OKF concept documents, runs a second LLM pass for citations/schemas/joins\n2. <strong>Static HTML visualizer</strong> \u2014 turns any OKF bundle into an interactive graph view in a single file; no backend, no install\n3. <strong>Sample bundles</strong> \u2014 GA4 e-commerce, Stack Overflow, Bitcoin public datasets</p>\n<p>These demonstrate producer/consumer independence: the agent is one way to produce OKF; the visualizer is one way to consume it. Neither is required by the format.</p>\n<h2>Relevance to Agent Architecture</h2>\n<p>OKF matters for agent design because it provides <strong>a standard knowledge interchange format</strong> \u2014 analogous to how JSON Schema standardized API contracts. An agent that reads/writes OKF can:</p>\n<ul><li>Consume knowledge produced by any other OKF-compliant system</li>\n<li>Produce knowledge that survives beyond its own runtime</li>\n<li>Participate in multi-agent workflows where agents exchange curated context</li>\n</ul>\nThis addresses one of the <a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">core challenges in agent systems</a>: context assembly. Instead of every agent solving the fragmentation problem from scratch, OKF provides a shared substrate.\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 The pattern OKF formalizes</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">wiki-llm</a> \u2014 Implementations that could adopt OKF output</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"rag-vs-compilation\">rag-vs-compilation</a> \u2014 OKF as the compilation side's interchange format</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Context assembly as a core agent capability</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"markdown-pipeline-integrity\">markdown-pipeline-integrity</a> \u2014 Structural validation; OKF conformance is a related concern</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/google-okf-introducing-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/google-okf-introducing-2026.md"]}, "planning-in-agents": {"title": "Planning in Agents", "type": "concept", "tags": ["planning", "reasoning", "pattern"], "html": "<h1>Planning in Agents</h1>\n<p>Planning enables an LLM agent to decompose complex tasks into smaller, manageable steps \u2014 and to reflect on its own performance to improve.</p>\n<h2>Task Decomposition</h2>\n<h3>Chain of Thought (CoT)</h3>\n<strong>Wei et al. 2022</strong> \u2014 The foundational technique. The model is prompted to \"think step by step,\" using test-time computation to break hard tasks into simpler steps. CoT transforms big tasks into multiple manageable ones and provides interpretability into the model's reasoning process.\n<h3>Tree of Thoughts (ToT)</h3>\n<strong>Yao et al. 2023</strong> \u2014 Extends CoT by exploring <strong>multiple</strong> reasoning paths at each step. Creates a tree structure of thoughts and searches via BFS or DFS. Each state is evaluated by a classifier (prompt) or majority vote. This is more powerful than linear CoT for problems with branching solution spaces.\n<h3>LLM+P</h3>\n<strong>Liu et al. 2023</strong> \u2014 Outsources planning to a classical planner. The workflow:\n1. LLM translates the problem into PDDL (Planning Domain Definition Language)\n2. A classical planner generates a PDDL plan\n3. LLM translates the PDDL plan back into natural language\n<p>This assumes domain-specific PDDL and a suitable planner are available \u2014 common in robotics, rare elsewhere.</p>\n<h3>Decomposition Strategies</h3>\nTask decomposition can be triggered by:\n1. Simple LLM prompting (\"Steps for XYZ...\")\n2. Task-specific instructions (\"Write a story outline.\")\n3. Human inputs\n<h2>Self-Reflection</h2>\n<p>Self-reflection allows agents to <strong>improve iteratively</strong> by learning from past mistakes. This is critical for real-world tasks where trial and error are inevitable. See <a href=\"#\" class=\"wikilink\" data-page=\"reflection-in-agents\">reflection-in-agents</a> for the full taxonomy of reflection approaches.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 How planning fits in the 3-component model</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"reflection-in-agents\">reflection-in-agents</a> \u2014 Self-reflection frameworks (ReAct, Reflexion, CoH)</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"chain-of-thought\">chain-of-thought</a> \u2014 Deep dive on CoT and its variants</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "reflection-in-agents": {"title": "Reflection in Agents", "type": "concept", "tags": ["reflection", "pattern", "planning"], "html": "<h1>Reflection in Agents</h1>\n<p>Reflection is the agent's ability to critique its own outputs and behavior, learn from mistakes, and iteratively improve. It's what separates a single-pass LLM call from an autonomous agent that gets better over time.</p>\n<h2>Reflection Frameworks</h2>\n<h3>ReAct (Yao et al. 2023)</h3>\n<strong>Reasoning + Acting</strong> \u2014 Extends the action space to include both task-specific actions AND natural language reasoning. The template cycles through Thought \u2192 Action \u2192 Observation, enabling the agent to interleave thinking with doing. ReAct outperforms Act-only baselines on both knowledge-intensive (HotpotQA, FEVER) and decision-making tasks (AlfWorld, WebShop).\n<p>See <a href=\"#\" class=\"wikilink\" data-page=\"react-pattern\">react-pattern</a> for a full deep dive.</p>\n<h3>Reflexion (Shinn & Labash 2023)</h3>\nA framework adding <strong>dynamic memory and self-reflection</strong> to agents. Built on an RL setup:\n<ul><li>Reward model provides simple binary reward</li>\n<li>Heuristic function detects inefficient trajectories (too long without success) or hallucination (consecutive identical actions with same observation)</li>\n<li>Self-reflection is created via two-shot examples showing (failed trajectory, ideal reflection) pairs</li>\n<li>Up to 3 reflections stored in working memory for context</li>\n</ul>\n<h3>Chain of Hindsight (CoH; Liu et al. 2023)</h3>\nTrains the model to <strong>improve by seeing its own past outputs with human feedback</strong>. The training data is sequences of (output, rating, feedback) ordered from worst to best. The model is fine-tuned to predict only the final, best output \u2014 learning to self-reflect through the feedback sequence. Key techniques:\n<ul><li>Regularization term to maximize pre-training log-likelihood (prevents overfitting)</li>\n<li>Random masking of 0-5% of past tokens (prevents shortcutting/copying)</li>\n</ul>\n<h3>Algorithm Distillation (AD; Laskin et al. 2023)</h3>\nApplies the hindsight principle to <strong>reinforcement learning across episodes</strong>. Multi-episode histories are concatenated and fed to the model, so it learns the process of RL improvement itself rather than any specific task policy. Requires 2-4 episodes in context for near-optimal in-context RL.\n<h2>Common Failure Modes Detected by Reflection</h2>\n<ul><li><strong>Inefficient planning</strong> \u2014 trajectories that take too long without success</li>\n<li><strong>Hallucination</strong> \u2014 consecutive identical actions producing the same observation</li>\n<li><strong>Format errors</strong> \u2014 malformed tool calls or response structures</li>\n</ul>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a> \u2014 Reflection as a planning sub-capability</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"react-pattern\">react-pattern</a> \u2014 The ReAct pattern in detail</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Where reflection fits in the architecture</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "tool-use-in-agents": {"title": "Tool Use in Agents", "type": "concept", "tags": ["tool-use", "framework", "evaluation"], "html": "<h1>Tool Use in Agents</h1>\n<p>Equipping LLMs with external tools significantly extends model capabilities beyond static weights \u2014 enabling code execution, API calls, web browsing, and domain-specific computation.</p>\n<h2>Key Frameworks</h2>\n<h3>MRKL (Karpas et al. 2022)</h3>\n<strong>Modular Reasoning, Knowledge and Language</strong> \u2014 A neuro-symbolic architecture where the LLM acts as a <strong>router</strong>, directing inquiries to the most suitable expert module (neural or symbolic). Key finding: it's harder for LLMs to solve verbal math problems than explicitly stated ones, because extracting correct arguments for arithmetic is unreliable.\n<h3>Toolformer (Schick et al. 2023)</h3>\nFine-tunes an LM to autonomously learn when and how to call external APIs. The training dataset is expanded when API call annotations improve output quality.\n<h3>HuggingGPT (Shen et al. 2023)</h3>\nA 4-stage pipeline using ChatGPT as task planner:\n1. <strong>Task Planning</strong> \u2014 Parse user request into subtasks with dependencies\n2. <strong>Model Selection</strong> \u2014 Distribute tasks to HuggingFace expert models\n3. <strong>Task Execution</strong> \u2014 Expert models execute and log results\n4. <strong>Response Generation</strong> \u2014 LLM summarizes execution results\n<h3>API-Bank (Li et al. 2023)</h3>\nA benchmark for tool-augmented LLMs with 53 APIs and 264 annotated dialogues. Evaluates at three levels:\n<ul><li><strong>Level 1</strong>: Can the model call a given API correctly?</li>\n<li><strong>Level 2</strong>: Can the model find the right API from a catalog?</li>\n<li><strong>Level 3</strong>: Can the model plan multi-step API sequences for ambiguous requests?</li>\n</ul>\n<h2>Practical Deployments</h2>\n<ul><li><strong>ChatGPT Plugins</strong> \u2014 Third-party APIs surfaced through a plugin marketplace</li>\n<li><strong>OpenAI Function Calling</strong> \u2014 Developer-defined tool schemas; LLM generates structured JSON calls</li>\n<li><strong>ChemCrow</strong> \u2014 Domain-specific: 13 chemistry tools for synthesis and drug discovery</li>\n</ul>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Tool use as one of three core components</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a> \u2014 Planning often involves tool selection</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"hugging-gpt\">hugging-gpt</a> \u2014 Deep dive on the HuggingGPT framework</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "wiki-compilation-pattern": {"title": "Wiki Compilation Pattern", "type": "concept", "tags": ["memory", "pattern", "emerging", "survey"], "html": "<h1>Wiki Compilation Pattern</h1>\n<p>The <strong>wiki compilation pattern</strong> (Karpathy, 2026) is an alternative to RAG for LLM-based knowledge management. Instead of retrieving raw document chunks at query time, the LLM incrementally builds and maintains a persistent, interlinked knowledge base.</p>\n<h2>Core Idea</h2>\n<blockquote><p>\"The LLM incrementally builds and maintains a persistent wiki \u2014 a structured, interlinked collection of markdown files that sits between you and the raw sources.\"</p></blockquote>\n<p><strong>The key difference from RAG:</strong> Knowledge is compiled once and kept current, not re-derived on every query. The cross-references are already there. The contradictions have already been flagged. The synthesis already reflects everything ingested.</p>\n<h2>Three Layers</h2>\n<table>\n<tr><td>Layer</td><td>Description</td><td>Maintained By</td></tr>\n<tr><td>---</td><td>---</td><td>---</td></tr>\n<tr><td><strong>Raw Sources</strong></td><td>Immutable source documents \u2014 articles, papers, transcripts</td><td>Human curator</td></tr>\n<tr><td><strong>Wiki Pages</strong></td><td>Interlinked markdown files \u2014 entities, concepts, comparisons</td><td>LLM agent</td></tr>\n<tr><td><strong>Schema</strong></td><td>Conventions, tag taxonomy, page thresholds</td><td>Human + LLM</td></tr>\n</table>\n<p>The division of labor: the human curates sources and directs analysis; the LLM summarizes, cross-references, files, and maintains consistency.</p>\n<h2>vs. RAG</h2>\n<table>\n<tr><td>Dimension</td><td>RAG</td><td>Wiki Compilation</td></tr>\n<tr><td>---</td><td>---</td><td>---</td></tr>\n<tr><td>Knowledge state</td><td>Re-derived per query</td><td>Persists and compounds</td></tr>\n<tr><td>Cross-references</td><td>None (chunks are isolated)</td><td>Built into every page</td></tr>\n<tr><td>Contradictions</td><td>Silently returned</td><td>Flagged and tracked</td></tr>\n<tr><td>Synthesis</td><td>Shallow (chunk-level)</td><td>Deep (all sources integrated)</td></tr>\n<tr><td>Query cost</td><td>Per-query retrieval + synthesis</td><td>Per-query: read pre-built pages</td></tr>\n</table>\n<h2>Use Cases</h2>\n<ul><li><strong>Research</strong> \u2014 going deep on a topic over weeks, building an evolving thesis</li>\n<li><strong>Reading a book</strong> \u2014 filing chapters, building character/theme/plot pages</li>\n<li><strong>Personal knowledge</strong> \u2014 journal entries, articles, podcast notes into structured self-knowledge</li>\n<li><strong>Business/team</strong> \u2014 internal wiki fed by Slack, meetings, documents; LLM does the maintenance</li>\n<li><strong>Competitive analysis, due diligence, trip planning, course notes</strong></li>\n</ul>\n<h2>Relevance to Agent Architecture</h2>\n<p>The wiki compilation pattern has implications for <a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a>: it's a <strong>structured long-term memory system</strong> where the agent doesn't just retrieve facts \u2014 it actively maintains a knowledge base, resolving contradictions and updating syntheses. This is a higher bar than vector-store retrieval and represents a more agentic approach to knowledge management.</p>\n<h2>Programmatic vs. Agentic Implementation</h2>\n<p>The <a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">same pattern can be implemented two ways</a> (Bernardo, 2026):</p>\n<ul><li><strong>Programmatic (Python package):</strong> Deterministic, reproducible, production-grade. Pydantic contracts between stages, content-addressable IDs, markdown structural validation. Best for large corpora and scheduled pipelines where token cost and audit trails matter.</li>\n<li><strong>Agentic (AGENTS.md):</strong> Single file, drop-in, no infrastructure. The agent follows the same Writer \u2192 Evaluator \u2192 Editor \u2192 Lint \u2192 Repair loop, but all enforcement is by convention rather than code. Best for small wikis and rapid iteration.</li>\n</ul>\nBoth produce comparable output quality \u2014 Karpathy's loop is robust enough either way. The trade-off is in infrastructure, determinism, and <a href=\"#\" class=\"wikilink\" data-page=\"markdown-pipeline-integrity\">structural reliability</a>.\n<h2>Tooling</h2>\n<p>The wiki directory works as an Obsidian vault \u2014 <code><a href=\"#\" class=\"wikilink\" data-page=\"wikilinks\">wikilinks</a></code> render as clickable links, Graph View shows the knowledge network, and YAML frontmatter powers Dataview queries. Karpathy's workflow: \"LLM agent open on one side, Obsidian open on the other.\"</p>\n<h2>Standardization: Open Knowledge Format</h2>\n<p>In June 2026, Google Cloud published the <a href=\"#\" class=\"wikilink\" data-page=\"open-knowledge-format\">Open Knowledge Format (OKF) v0.1</a>, formalizing the wiki compilation pattern into an interoperable standard. OKF specifies a directory of markdown files with standardized YAML frontmatter fields (<code>type</code>, <code>title</code>, <code>description</code>, <code>resource</code>, <code>tags</code>, <code>timestamp</code>) \u2014 making wikis built by different producers consumable by different agents without translation.</p>\n<p>This represents the pattern's evolution from an idea file into a formal spec, with three design principles: minimally opinionated, producer/consumer independence, and format-not-platform.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a> \u2014 Wiki compilation as structured long-term memory</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Where knowledge management fits in agent architecture</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"rag-vs-compilation\">rag-vs-compilation</a> \u2014 Side-by-side comparison of the two approaches</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"open-knowledge-format\">open-knowledge-format</a> \u2014 The formal standard based on this pattern</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-llm\">wiki-llm</a> \u2014 Dual implementation of the wiki compilation pipeline</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/karpathy-llm-wiki-2026.md]</sup>\n<sup class=\"provenance\">[raw/articles/google-okf-introducing-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/karpathy-llm-wiki-2026.md"]}, "auto-gpt": {"title": "AutoGPT", "type": "entity", "tags": ["framework", "pattern", "emerging", "tool-use"], "html": "<h1>AutoGPT</h1>\n<p>AutoGPT is an open-source proof-of-concept that popularized the idea of fully autonomous LLM agents. It uses GPT-4 as its core controller with a structured system message defining goals, constraints, and available commands.</p>\n<h2>Architecture</h2>\n<p>The agent operates on a goal-oriented system message that includes:\n<ul><li><strong>Goals</strong>: A numbered list of user-provided objectives</li>\n<li><strong>Constraints</strong>: Short-term memory limits (~4000 words), no user assistance</li>\n<li><strong>Commands</strong>: 20 predefined actions (Google Search, file operations, code execution, agent delegation)</li>\n<li><strong>Performance Evaluation</strong>: Self-criticism and reflection instructions</li>\n</ul>\nOutput is structured as JSON with <code>thoughts</code> (text, reasoning, plan, criticism) and <code>command</code> (name + args).</p>\n<h2>Significance</h2>\n<p>While AutoGPT has <strong>reliability issues</strong> (much of its code is format parsing), it demonstrated that:\n<ul><li>LLMs can orchestrate multi-step autonomous workflows</li>\n<li>Natural language is a viable interface for agent control</li>\n<li>Tool-augmented agents can pursue open-ended goals</li>\n</ul>\n<h2>Limitations</h2></p>\n<ul><li>Heavy reliance on format parsing due to natural language interface unreliability</li>\n<li>Limited context window constrains complex task execution</li>\n<li>No built-in reflection or learning from past runs</li>\n</ul>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 AutoGPT as an instantiation of the 3-component model</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a> \u2014 The tool catalog approach</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"gpt-engineer\">gpt-engineer</a> \u2014 Similar proof-of-concept focused on code generation</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a> \u2014 AutoGPT's planning via goal decomposition</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "medium", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "generative-agents": {"title": "Generative Agents", "type": "entity", "tags": ["multi-agent", "memory", "planning", "reflection", "communication", "benchmark"], "html": "<h1>Generative Agents</h1>\n<p><strong>Generative Agents</strong> (Park et al. 2023) is a landmark paper demonstrating 25 LLM-powered agents living and interacting in a sandbox environment inspired by The Sims. It combines LLMs with memory, planning, and reflection to produce believable simulacra of human behavior.</p>\n<h2>Architecture</h2>\n<h3>Memory Stream</h3>\nA long-term memory module that records all agent experiences as natural language observations. Inter-agent communication can trigger new observations.\n<h3>Retrieval Model</h3>\nSurfaces relevant context along three scored dimensions:\n<ul><li><strong>Recency</strong> \u2014 recent events score higher</li>\n<li><strong>Importance</strong> \u2014 LLM evaluates whether a memory is mundane or core</li>\n<li><strong>Relevance</strong> \u2014 embedding similarity to current situation/query</li>\n</ul>\n<h3>Reflection Mechanism</h3>\nSynthesizes memories into higher-level inferences over time:\n<ul><li>Feed the 100 most recent observations to the LLM</li>\n<li>Generate the 3 most salient high-level questions</li>\n<li>Ask the LLM to answer those questions</li>\n<li>These reflections guide future behavior</li>\n</ul>\n<h3>Planning & Reacting</h3>\nTranslates reflections and environment information into actions. Plans are generated daily (\"Here is X's plan today in broad strokes: 1)...\") and consider relationships between agents and observations.\n<h2>Emergent Behaviors</h2>\n<p>The simulation produced surprising emergent social phenomena:\n<ul><li><strong>Information diffusion</strong> \u2014 news spread naturally through the agent community</li>\n<li><strong>Relationship memory</strong> \u2014 agents continued conversations across multiple interactions</li>\n<li><strong>Social coordination</strong> \u2014 agents organized events (parties) and invited others</li>\n</ul>\n<h2>Significance</h2></p>\n<p>This paper demonstrated that LLM agents with persistent memory and social awareness can produce emergent collective behavior \u2014 not just individual task completion.</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a> \u2014 The memory stream and retrieval model</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"multi-agent-systems\">multi-agent-systems</a> \u2014 Multi-agent interaction patterns</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Maps to the 3-component architecture</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "hugging-gpt": {"title": "HuggingGPT", "type": "entity", "tags": ["framework", "orchestration", "tool-use", "planning"], "html": "<h1>HuggingGPT</h1>\n<p><strong>HuggingGPT</strong> (Shen et al. 2023) is a framework that uses ChatGPT as a task planner to orchestrate HuggingFace's model ecosystem. It routes user requests to the most appropriate expert models.</p>\n<h2>Four-Stage Pipeline</h2>\n<p>1. <strong>Task Planning</strong> \u2014 LLM parses user requests into multiple tasks, each with: task type, ID, dependencies, and arguments. Few-shot examples guide the parsing.</p>\n<p>2. <strong>Model Selection</strong> \u2014 LLM selects from available HuggingFace models framed as a multiple-choice question. Task-type filtering narrows candidates to fit context length.</p>\n<p>3. <strong>Task Execution</strong> \u2014 Expert models execute tasks; results are logged with file paths and metadata.</p>\n<p>4. <strong>Response Generation</strong> \u2014 LLM receives all execution results and synthesizes a coherent response, including file paths and analysis.</p>\n<h2>Real-World Challenges</h2>\n<ul><li><strong>Efficiency</strong> \u2014 Multiple LLM inference rounds + external model calls slow things down</li>\n<li><strong>Context length</strong> \u2014 Complex task content strains the context window</li>\n<li><strong>Stability</strong> \u2014 LLM outputs and external model services can be unreliable</li>\n</ul>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a> \u2014 HuggingGPT as a tool orchestration pattern</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"react-pattern\">react-pattern</a> \u2014 The Thought/Action/Observation format used</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Maps planning + tool use components</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "medium", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "react-pattern": {"title": "ReAct Pattern", "type": "entity", "tags": ["pattern", "reasoning", "tool-use", "reflection", "benchmark"], "html": "<h1>ReAct Pattern</h1>\n<p><strong>ReAct</strong> (Reasoning + Acting) is a prompting pattern introduced by Yao et al. (2023, ICLR) that interleaves reasoning traces with environment actions.</p>\n<h2>How It Works</h2>\n<p>The agent operates in a loop with three phases:</p>\n<pre><code>\nThought: [Reason about the current state and what to do next]\nAction: [Execute a tool call or environment action]\nObservation: [Receive feedback from the environment]\n... (repeat)\n</code></pre>\n<p>The action space is extended to include both:\n<ul><li><strong>Task-specific discrete actions</strong> (e.g., Wikipedia search API call)</li>\n<li><strong>Language space actions</strong> (natural language reasoning traces)</li>\n</ul>\n<h2>Key Results</h2></p>\n<p>ReAct outperforms <strong>Act-only baselines</strong> (where the Thought step is removed) on:\n<ul><li><strong>Knowledge-intensive tasks</strong>: HotpotQA, FEVER</li>\n<li><strong>Decision-making tasks</strong>: AlfWorld Env, WebShop</li>\n</ul>\nThe interleaving of reasoning and acting allows the agent to dynamically adjust its plan based on observations, rather than committing to a static plan upfront.</p>\n<h2>Influence</h2>\n<p>ReAct has become one of the most influential agent patterns, directly inspiring:\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"reflection-in-agents\">Reflexion</a> \u2014 adds RL-based self-reflection on top of ReAct's action space</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"hugging-gpt\">hugging-gpt</a> \u2014 uses Thought/Action/Observation format in its pipeline</li>\n<li>ChemCrow \u2014 domain-specific ReAct for chemistry (see <a href=\"#\" class=\"wikilink\" data-page=\"tool-use-in-agents\">tool-use-in-agents</a>)</li>\n<li>Most modern agent frameworks incorporate some form of the ReAct loop</li>\n</ul>\n<h2>Related</h2></p>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"reflection-in-agents\">reflection-in-agents</a> \u2014 Reflexion builds on ReAct's action space</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"planning-in-agents\">planning-in-agents</a> \u2014 ReAct as a planning+execution strategy</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Where ReAct fits in agent architecture</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/lilian-weng-agent-survey-2023.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/lilian-weng-agent-survey-2023.md"]}, "wiki-llm": {"title": "wiki_llm", "type": "entity", "tags": ["framework", "pattern", "memory", "deployment"], "html": "<h1>wiki_llm</h1>\n<p><strong>wiki_llm</strong> (Leandro Bernardo, 2026) is a dual implementation of Karpathy's <a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 available as both a Python package (<code>wiki-llm</code>) and a single <code>AGENTS.md</code> file. It's a case study in the <strong>programmatic vs. agentic</strong> trade-off for knowledge compilation pipelines.</p>\n<h2>Two Implementations, One Pattern</h2>\n<p>Both implement the same eight-stage pipeline derived from Karpathy's gist:</p>\n<pre><code>\nWriter \u2192 Evaluator \u2192 Editor \u2192 Lint \u2192 Repair \u2192 (loop)\n</code></pre>\n<h3>Programmatic Version (<code>wiki-llm</code> Python package)</h3>\n<ul><li><strong>Pydantic v2 contracts</strong> between stages \u2014 typed inputs/outputs enforced, not hoped for</li>\n<li><strong>Deterministic content-addressable IDs</strong> \u2014 UUIDs derived from SHA-256 of page body; same content, same ID regardless of filename</li>\n<li><strong>Multi-backend LLM</strong> via <code>instructor</code> \u2014 OpenRouter, OpenAI, Bedrock, Ollama; structured outputs with automatic retries</li>\n<li><strong>Repair agent</strong> built with LangGraph \u2014 fan-out and review for lint findings</li>\n<li><strong>BM25 retrieval</strong> instead of vector store \u2014 lexical search is fast, transparent, and sufficient for wiki-scale corpora</li>\n<li><strong>markdown-hero layer</strong> \u2014 type-checked, section-aware markdown processing (see <a href=\"#\" class=\"wikilink\" data-page=\"markdown-pipeline-integrity\">markdown-pipeline-integrity</a>)</li>\n<li><strong>Production-ready</strong>: Kubernetes CronJob, Docker, single <code>WikiConfig</code> module</li>\n</ul>\n<h3>Agentic Version (<code>AGENTS.md</code>)</h3>\n<ul><li>Single file dropped into any project root \u2014 works with Claude Code, Codex, Cursor, VS Code Agent Mode</li>\n<li>Same eight stages, same conventions, same <code><a href=\"#\" class=\"wikilink\" data-page=\"wikilinks\">wikilinks</a></code></li>\n<li><strong>What's removed</strong>: Pydantic models, Docker, CI, LangGraph repair agent, deterministic UUIDs, chat UI</li>\n<li><strong>What's kept</strong>: Writer \u2192 Evaluator \u2192 Editor loop, lint rules, repair behavior, consolidation step</li>\n<li>Config lives in the file itself \u2014 agent fills it during a first-run wizard</li>\n</ul>\n<h2>When to Use Which</h2>\n<table>\n<tr><td>Scenario</td><td>Use</td></tr>\n<tr><td>---</td><td>---</td></tr>\n<tr><td>Personal/small-team wiki (<200 docs)</td><td><code>AGENTS.md</code></td></tr>\n<tr><td>Still discovering wiki shape</td><td><code>AGENTS.md</code></td></tr>\n<tr><td>Large corpus (token cost matters)</td><td>Python package</td></tr>\n<tr><td>Need deterministic outputs</td><td>Python package</td></tr>\n<tr><td>Downstream automation (search, dashboards)</td><td>Python package</td></tr>\n<tr><td>Production scheduled runs</td><td>Python package</td></tr>\n<tr><td>Audit trail required</td><td>Python package</td></tr>\n</table>\n<p>Key insight from Bernardo: <strong>output quality is comparable in both</strong> \u2014 Karpathy's Writer \u2192 Evaluator \u2192 Editor loop is robust enough that it produces good pages whether it runs as Python or as agent instructions. The difference is _everything around the loop, not the loop itself._</p>\n<h2>Related</h2>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 The Karpathy pattern both implementations derive from</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"markdown-pipeline-integrity\">markdown-pipeline-integrity</a> \u2014 The structural markdown problem that the programmatic version solves</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"rag-vs-compilation\">rag-vs-compilation</a> \u2014 The broader knowledge management trade-off</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Where knowledge compilation pipelines fit in agent architecture</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/bernardo-llm-wiki-twice-2026.md]</sup>\n<sup class=\"provenance\">[raw/articles/karpathy-llm-wiki-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "medium", "contested": "", "sources": ["raw/articles/bernardo-llm-wiki-twice-2026.md", "raw/articles/karpathy-llm-wiki-2026.md"]}, "rag-vs-compilation": {"title": "RAG vs Wiki Compilation", "type": "comparison", "tags": ["comparison", "memory", "pattern"], "html": "<h1>RAG vs Wiki Compilation</h1>\n<p>Two fundamentally different approaches to LLM knowledge management.</p>\n<h2>Comparison</h2>\n<table>\n<tr><td>Dimension</td><td>RAG (Retrieval-Augmented Generation)</td><td>Wiki Compilation (Karpathy)</td></tr>\n<tr><td>---</td><td>---</td><td>---</td></tr>\n<tr><td><strong>Knowledge state</strong></td><td>Transient \u2014 re-derived on every query</td><td>Persistent \u2014 compounds over time</td></tr>\n<tr><td><strong>Storage</strong></td><td>Vector database of document chunks</td><td>Interlinked markdown files</td></tr>\n<tr><td><strong>Cross-references</strong></td><td>None \u2014 chunks are isolated fragments</td><td>Rich \u2014 every page links to 2+ others</td></tr>\n<tr><td><strong>Contradictions</strong></td><td>Silently returned; no tracking</td><td>Explicitly flagged in frontmatter</td></tr>\n<tr><td><strong>Synthesis depth</strong></td><td>Shallow \u2014 chunk-level recombination</td><td>Deep \u2014 all sources integrated into coherent pages</td></tr>\n<tr><td><strong>Query cost</strong></td><td>Retrieval + synthesis every query</td><td>Read pre-built pages; synthesis already done</td></tr>\n<tr><td><strong>Ingest cost</strong></td><td>Low \u2014 embed and store</td><td>High \u2014 LLM reads, extracts, cross-references, writes</td></tr>\n<tr><td><strong>Aging</strong></td><td>Chunks never stale but never updated</td><td>Pages actively maintained; contradictions surfaced</td></tr>\n<tr><td><strong>Maintainer</strong></td><td>System (indexing pipeline)</td><td>LLM agent (active curation)</td></tr>\n<tr><td><strong>Best for</strong></td><td>Large corpora, fast-changing content, simple fact lookup</td><td>Deep research, long-term projects, complex synthesis</td></tr>\n</table>\n<h2>When to Use Which</h2>\n<p><strong>Choose RAG when:</strong>\n<ul><li>You have a massive corpus (thousands of documents)</li>\n<li>Content changes frequently and re-indexing is cheap</li>\n<li>Queries are simple fact-retrieval (\"What is X?\")</li>\n<li>You don't need cross-document synthesis</li>\n</ul>\n<strong>Choose Wiki Compilation when:</strong>\n<ul><li>You're going deep on a bounded domain (dozens to hundreds of sources)</li>\n<li>You need cross-document synthesis and contradiction detection</li>\n<li>Knowledge should compound over time</li>\n<li>You want human-browsable, linkable artifacts</li>\n<li>You're building a thesis, not just answering questions</li>\n</ul>\n<h2>Hybrid Approaches</h2></p>\n<p>The two aren't mutually exclusive. A hybrid could:\n<ul><li>Use RAG for initial discovery (\"find me papers about X\")</li>\n<li>Use wiki compilation for deep integration (\"ingest these 5 papers into the wiki\")</li>\n<li>Use RAG as a fallback when the wiki has no relevant pages</li>\n</ul>\n<h2>Related</h2></p>\n<ul><li><a href=\"#\" class=\"wikilink\" data-page=\"wiki-compilation-pattern\">wiki-compilation-pattern</a> \u2014 Full concept deep dive</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"memory-in-agents\">memory-in-agents</a> \u2014 Both approaches as memory systems</li>\n<li><a href=\"#\" class=\"wikilink\" data-page=\"agent-system-overview\">agent-system-overview</a> \u2014 Knowledge management in agent architecture</li>\n</ul>\n<sup class=\"provenance\">[raw/articles/karpathy-llm-wiki-2026.md]</sup>", "created": "2026-06-18", "updated": "2026-06-18", "confidence": "", "contested": "", "sources": ["raw/articles/karpathy-llm-wiki-2026.md"]}};
+const SECTIONS = {"entities": [{"slug": "auto-gpt", "summary": "Open-source proof-of-concept that popularized fully autonomous LLM agents (GPT-4 + structured system message)"}, {"slug": "generative-agents", "summary": "25 LLM agents in a Sims-like sandbox with memory, reflection, and emergent social behavior (Park et al. 2023)"}, {"slug": "hugging-gpt", "summary": "ChatGPT as task planner orchestrating HuggingFace's model ecosystem in a 4-stage pipeline"}, {"slug": "react-pattern", "summary": "Interleaved reasoning and acting (Thought \u2192 Action \u2192 Observation) that outperforms action-only baselines (Yao et al. 2023)"}, {"slug": "wiki-llm", "summary": "Dual implementation (Python package + AGENTS.md) of Karpathy's wiki compilation pattern; case study in programmatic vs. agentic trade-offs"}], "concepts": [{"slug": "agent-system-overview", "summary": "The standard 3-component model: planning, memory, and tool use with LLM as controller"}, {"slug": "markdown-pipeline-integrity", "summary": "Why LLM-generated markdown structural noise corrupts downstream pipeline stages, and how to prevent it"}, {"slug": "memory-in-agents", "summary": "Memory types (sensory/STM/LTM), vector stores, MIPS/ANN, and wiki compilation pattern"}, {"slug": "open-knowledge-format", "summary": "Google Cloud's OKF v0.1: formal spec standardizing the wiki compilation pattern for interoperable agent context"}, {"slug": "planning-in-agents", "summary": "Task decomposition (CoT, ToT, LLM+P) and the role of planning in agent architectures"}, {"slug": "reflection-in-agents", "summary": "Self-critique frameworks: ReAct, Reflexion, Chain of Hindsight, Algorithm Distillation"}, {"slug": "tool-use-in-agents", "summary": "External API integration: MRKL, Toolformer, HuggingGPT, API-Bank, and function calling"}, {"slug": "wiki-compilation-pattern", "summary": "The Karpathy wiki pattern: compounding knowledge base vs. transient RAG, now standardized as OKF"}], "comparisons": [{"slug": "rag-vs-compilation", "summary": "Side-by-side: RAG (retrieval-based) vs. Wiki Compilation (compounding knowledge base)"}], "queries": []};
+
+// Build sidebar navigation
+function buildNav() {
+    const typeLabels = { entities: 'entity', concepts: 'concept', comparisons: 'comparison', queries: 'query' };
+    for (const [section, items] of Object.entries(SECTIONS)) {
+        const container = document.getElementById('nav-' + section);
+        if (!container) continue;
+        items.forEach(item => {
+            const page = PAGES[item.slug];
+            const typeClass = page ? 'type-' + page.type : '';
+            const link = document.createElement('a');
+            link.className = 'sidebar-item';
+            link.href = '#';
+            link.onclick = (e) => { e.preventDefault(); showPage(item.slug); };
+            link.title = item.summary;
+            const badge = document.createElement('span');
+            badge.className = 'type-badge ' + typeClass;
+            badge.textContent = page ? page.type : typeLabels[section] || '';
+            link.appendChild(badge);
+            link.appendChild(document.createTextNode(page ? page.title : item.slug));
+            container.appendChild(link);
+        });
+    }
+}
+
+function showPage(slug) {
+    const main = document.getElementById('content');
+    if (slug === '_home') {
+        return showHome();
+    }
+
+    const page = PAGES[slug];
+    if (!page) {
+        main.innerHTML = `<div class="welcome">
+            <h1>Page not found</h1>
+            <p>The page <code>[[${slug}]]</code> does not exist yet. 
+            This is a growth target — ingest a source covering this topic to create it.</p>
+            <p><a href="#" onclick="showPage('_home')">← Back to home</a></p>
+        </div>`;
+        return;
+    }
+
+    let tagsHtml = '';
+    if (page.tags && page.tags.length > 0) {
+        tagsHtml = page.tags.filter(t => t).map(t => `<span class="tag">${t}</span>`).join('');
+    }
+
+    let confidenceHtml = '';
+    if (page.confidence) {
+        confidenceHtml = `<span class="confidence-${page.confidence}">confidence: ${page.confidence}</span>`;
+    }
+
+    let sourcesHtml = '';
+    if (page.sources && page.sources.length > 0) {
+        sourcesHtml = '<span>📎 ' + page.sources.map(s => s.replace('raw/articles/', '')).join(', ') + '</span>';
+    }
+
+    let updatedHtml = page.updated ? `<span>updated: ${page.updated}</span>` : '';
+
+    main.innerHTML = `
+        <h1>${page.title}</h1>
+        <div class="page-meta">
+            <span class="type-badge type-${page.type}">${page.type}</span>
+            ${tagsHtml}
+            ${confidenceHtml}
+            ${sourcesHtml}
+            ${updatedHtml}
+        </div>
+        ${page.html}
+    `;
+
+    // Wire up wikilink clicks
+    main.querySelectorAll('a.wikilink').forEach(link => {
+        link.onclick = (e) => {
+            e.preventDefault();
+            const target = link.getAttribute('data-page');
+            if (target) showPage(target);
+        };
+    });
+
+    // Scroll to top
+    main.scrollTop = 0;
+}
+
+function showHome() {
+    const main = document.getElementById('content');
+    let quickLinks = '';
+    const hubs = ['agent-system-overview', 'wiki-compilation-pattern', 'planning-in-agents', 'react-pattern'];
+    hubs.forEach(slug => {
+        const page = PAGES[slug];
+        if (page) {
+            quickLinks += `
+                <div class="quick-link" onclick="showPage('${slug}')">
+                    <strong>${page.title}</strong><br>
+                    <small style="color: var(--text3);">${page.type} · ${(page.tags||[]).slice(0,3).join(', ')}</small>
+                </div>`;
+        }
+    });
+
+    main.innerHTML = `
+        <div class="welcome">
+            <h1>🧠 LLM Agent Architectures Wiki</h1>
+            <p>A compounding knowledge base on <strong>LLM agent architectures</strong>, 
+            maintained by an AI agent using <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank">Karpathy's LLM Wiki pattern</a>.</p>
+            <p>15 interlinked pages across 4 ingested sources. Updated every 12 hours via automated RSS pipeline.</p>
+
+            <h3>Start Here</h3>
+            <div class="quick-links">
+                ${quickLinks}
+            </div>
+
+            <h3>How This Works</h3>
+            <table>
+                <tr><th>Layer</th><th>Purpose</th><th>Maintainer</th></tr>
+                <tr><td>Raw sources</td><td>Immutable source material with SHA256 provenance</td><td>Human curator</td></tr>
+                <tr><td>Wiki pages</td><td>Interlinked markdown built by the agent</td><td>LLM agent</td></tr>
+                <tr><td>Schema</td><td>Conventions, tag taxonomy, page thresholds</td><td>Human + LLM</td></tr>
+            </table>
+
+            <h3>Ingested Sources</h3>
+            <ul>
+                <li><strong>Lilian Weng</strong> — "LLM Powered Autonomous Agents" (Jun 2023) → 9 pages</li>
+                <li><strong>Andrej Karpathy</strong> — "LLM Wiki" gist (2026) → 2 pages</li>
+                <li><strong>Leandro Bernardo</strong> — "I Built Karpathy's LLM Wiki Twice" (May 2026) → 2 pages</li>
+                <li><strong>Google Cloud</strong> — "Introducing the Open Knowledge Format" (Jun 2026) → 1 page</li>
+            </ul>
+
+            <p style="margin-top: 24px; color: var(--text3); font-size: 0.85em;">
+                Browse via the sidebar → or click any [[wikilink]] to navigate.<br>
+                Open in <a href="obsidian://open?path=${encodeURI(WIKI_DIR)}" target="_blank">Obsidian</a> for graph view and backlinks.
+            </p>
+        </div>`;
+}
+
+// Initialize
+buildNav();
+showHome();
+</script>
+
+</body>
+</html>

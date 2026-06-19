@@ -1,0 +1,30 @@
+{
+  "description": "RSS feeds monitored for the LLM Agent Architectures wiki",
+  "default_window_days": 90,
+  "feeds": [
+    {
+      "name": "Lilian Weng",
+      "url": "https://lilianweng.github.io/index.xml",
+      "window_days": 365,
+      "_note": "Posts quarterly; wide window to catch relevant agent architecture posts"
+    },
+    {
+      "name": "Andrej Karpathy",
+      "url": "https://karpathy.github.io/feed.xml",
+      "window_days": 365,
+      "_note": "Posts infrequently; wide window to catch the few high-signal posts"
+    },
+    {
+      "name": "Chip Huyen",
+      "url": "https://huyenchip.com/feed.xml",
+      "window_days": 365,
+      "_note": "Strong agent content; wide window to catch her agent posts"
+    },
+    {
+      "name": "Simon Willison",
+      "url": "https://simonwillison.net/atom/everything/",
+      "window_days": 7,
+      "_note": "Posts daily (~30/month); narrow window to avoid noise, keep only the most timely"
+    }
+  ]
+}
