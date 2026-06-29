@@ -60,3 +60,13 @@
 - Synthesis: 4 trade-off dimensions surfaced (programmatic vs. agentic, markdown integrity, ingest/query cost inversion, standardization vs. flexibility)
 - Filed: not filed (demonstration query)
 - Updated: log.md (this entry)
+
+## [2026-06-29] cron | Watcher script fix — Python resolution mismatch
+- RSS watcher failed with `ModuleNotFoundError: No module named 'feedparser'`
+- Root cause: cron executor's Python (Hermes venv, 3.11.15) lacked `feedparser`
+- Fix: `uv pip install feedparser` into venv + pinned shebang to venv Python path
+- Assessment: 6 orphaned raw articles checked — all either already ingested or out of domain
+  - lilian-weng-agent-survey-2023.md: already ingested (2026-06-18 log entry)
+  - andrej-karpathy-microgpt.md: NOT relevant (GPT training, not agent architecture)
+  - 4 Simon Willison posts: NOT relevant (WebRTC, job market, Anthropic drama, GLM model)
+- Result: No new articles to ingest, no wiki changes needed
